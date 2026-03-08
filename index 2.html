@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#E8541A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FeastSmart">
+<meta name="description" content="Feast on your local food. Lose weight smartly. AI meal plans built around your food culture.">
+<title>FeastSmart — Feast on Your Culture, Not a Diet</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #1C0F0A;
+  --surface:   #261510;
+  --surface2:  #2F1A12;
+  --border:    #3D2218;
+  --text:      #F2E8DF;
+  --muted:     #8A6A58;
+  --orange:    #E8541A;
+  --orange-dim:#3A1A0A;
+  --saffron:   #F0A500;
+  --saff-dim:  #2D2000;
+  --cream:     #F5E6D3;
+  --green:     #5A9E6F;
+  --green-dim: #0F2A18;
+  --red:       #D94F3D;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Warm noise texture overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 0; opacity: 0.7;
+}
+
+/* Warm glow */
+body::after {
+  content: '';
+  position: fixed;
+  top: -150px; left: -150px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(232,84,26,0.07) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+.app {
+  position: relative; z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  padding-top: var(--safe-top);
+  padding-bottom: calc(68px + var(--safe-bottom));
+}
+
+/* ── TOP NAV ── */
+.topnav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(28,15,10,0.93);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.3rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.logo {
+  display: flex; align-items: baseline; gap: 0.1rem;
+}
+.logo-feast {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 700;
+  font-style: italic;
+  color: var(--orange);
+  letter-spacing: -0.02em;
+}
+.logo-smart {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem; font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+
+.pro-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
+}
+.pro-badge:hover { border-color: var(--orange); color: var(--orange); }
+.pro-badge.active { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
+
+/* ── PAGES ── */
+.page { display: none; flex-direction: column; flex: 1; padding: 1.3rem; gap: 1.1rem; }
+.page.active { display: flex; animation: fadeUp 0.25s ease both; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── BOTTOM NAV ── */
+.bottomnav {
+  position: fixed; bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: rgba(38,21,16,0.97);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: var(--safe-bottom);
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 0.75rem 0.4rem; gap: 0.2rem;
+  cursor: pointer; transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.nav-icon { font-size: 1.3rem; transition: transform 0.2s; }
+.nav-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.52rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  transition: color 0.15s;
+}
+.nav-item.active .nav-icon { transform: scale(1.15); }
+.nav-item.active .nav-label { color: var(--orange); }
+
+/* ── HERO ── */
+.hero {
+  padding: 0.3rem 0;
+}
+.hero-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.58rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--orange);
+  display: flex; align-items: center; gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.hero-tag::before { content:''; width:18px; height:1px; background:var(--orange); }
+
+.hero-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.6rem; line-height: 1.05;
+  letter-spacing: -0.02em; font-weight: 600;
+}
+.hero-title em { font-style: italic; color: var(--orange); }
+.hero-sub {
+  margin-top: 0.45rem;
+  font-size: 0.82rem; color: var(--muted);
+  line-height: 1.75; font-weight: 300;
+}
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.3rem;
+}
+
+.card-head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 1.1rem;
+  display: flex; align-items: center; gap: 0.45rem;
+}
+.card-head::before {
+  content: ''; width: 8px; height: 8px;
+  border-radius: 2px; background: var(--orange);
+  flex-shrink: 0; transform: rotate(45deg);
+}
+
+/* ── FIELDS ── */
+.field { margin-bottom: 1rem; }
+.field:last-child { margin-bottom: 0; }
+
+label {
+  display: block; font-size: 0.75rem; font-weight: 600;
+  color: var(--text); margin-bottom: 0.38rem; letter-spacing: 0.01em;
+}
+label .sub { font-weight: 300; color: var(--muted); font-size: 0.7rem; }
+
+input[type="number"], input[type="text"], select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.72rem 1rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem; color: var(--text);
+  outline: none; appearance: none; -webkit-appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+input:focus, select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 3px rgba(232,84,26,0.15);
+}
+input::placeholder { color: var(--muted); opacity: 0.6; }
+
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+
+/* Segmented */
+.seg-group { display: flex; gap: 0.4rem; }
+.seg {
+  flex: 1; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 0.5rem 0.3rem; text-align: center;
+  font-size: 0.68rem; font-weight: 600; color: var(--muted);
+  cursor: pointer; transition: all 0.15s; line-height: 1.4;
+  -webkit-tap-highlight-color: transparent;
+}
+.seg:hover { border-color: var(--orange); color: var(--text); }
+.seg.on { background: var(--orange-dim); border-color: var(--orange); color: var(--orange); }
+
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: 0.8rem; }
+input[type="range"] {
+  flex: 1; -webkit-appearance: none;
+  height: 3px; background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--orange); cursor: pointer;
+  box-shadow: 0 0 12px rgba(232,84,26,0.45);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.25); }
+.sl-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem; color: var(--orange);
+  min-width: 3.2rem; text-align: right; font-weight: 500;
+}
+
+/* ── STATS ── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 1rem 1.1rem;
+}
+.stat.hero-stat {
+  background: var(--orange-dim);
+  border-color: var(--orange);
+}
+.stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.54rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.4rem;
+}
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem; font-weight: 700; line-height: 1;
+  letter-spacing: -0.02em; color: var(--text);
+}
+.stat.hero-stat .stat-num { color: var(--orange); }
+.stat-hint { font-size: 0.65rem; color: var(--muted); margin-top: 0.2rem; font-weight: 300; }
+
+/* ── MACROS ── */
+.macro-stack { display: flex; flex-direction: column; gap: 0.9rem; }
+.mac-lbl-row { display: flex; justify-content: space-between; margin-bottom: 0.3rem; }
+.mac-name { font-size: 0.75rem; font-weight: 600; }
+.mac-grams {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; color: var(--muted);
+}
+.bar-track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; width: 0; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+
+/* ── GENERATE BTN ── */
+.btn-gen {
+  width: 100%; padding: 1.05rem;
+  background: var(--orange); color: #1C0F0A;
+  border: none; border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-gen:hover { background: #F06030; box-shadow: 0 6px 24px rgba(232,84,26,0.4); transform: translateY(-1px); }
+.btn-gen:active { transform: scale(0.98); box-shadow: none; }
+.btn-gen:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── MEAL PLAN ── */
+.plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.3rem;
+  min-height: 220px;
+}
+
+.plan-toprow {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.1rem;
+}
+
+.ai-status {
+  display: flex; align-items: center; gap: 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.ai-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted); flex-shrink: 0;
+}
+.ai-dot.live {
+  background: var(--orange);
+  animation: glow 1.4s ease-in-out infinite;
+}
+@keyframes glow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(232,84,26,0.5); }
+  50%      { box-shadow: 0 0 0 6px rgba(232,84,26,0); }
+}
+
+/* Empty state */
+.plan-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 160px; gap: 0.8rem;
+  color: var(--muted); text-align: center;
+}
+.plan-empty .big { font-size: 2.8rem; opacity: 0.35; }
+.plan-empty p { font-size: 0.78rem; line-height: 1.65; max-width: 260px; font-weight: 300; }
+
+/* Shimmer */
+.shimmer { display: none; flex-direction: column; gap: 0.65rem; padding: 0.5rem 0; }
+.shimmer.on { display: flex; }
+.sl {
+  height: 13px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--surface2) 25%, var(--border) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: sh 1.5s infinite;
+}
+@keyframes sh { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.sl:nth-child(2){width:78%}.sl:nth-child(3){width:92%}.sl:nth-child(4){width:62%}.sl:nth-child(5){width:85%}
+
+/* AI content */
+.plan-out { display: none; }
+.plan-out.on { display: block; }
+
+.plan-out h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.7rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--saffron);
+  margin: 1.1rem 0 0.55rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--saff-dim);
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.plan-out h3:first-child { margin-top: 0; }
+
+.meal-item {
+  display: flex; align-items: baseline;
+  gap: 0.5rem; padding: 0.5rem 0;
+  border-bottom: 1px solid var(--surface2);
+}
+.meal-item:last-of-type { border-bottom: none; }
+.meal-name { font-size: 0.82rem; font-weight: 600; flex: 1.2; color: var(--text); }
+.meal-detail {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; color: var(--muted); flex: 1.6; line-height: 1.4;
+}
+.meal-cal {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; color: var(--saffron);
+  white-space: nowrap; font-weight: 500;
+}
+
+.tip-box {
+  margin-top: 1rem; padding: 0.9rem 1rem;
+  background: var(--green-dim);
+  border-left: 3px solid var(--green);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.79rem; line-height: 1.65; color: var(--text); font-weight: 300;
+}
+.tip-box strong { color: #7BC99A; font-weight: 600; }
+
+/* ── FREE USES INDICATOR ── */
+.uses-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface2); border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+.uses-txt { font-size: 0.75rem; font-weight: 500; }
+.uses-pips { display: flex; gap: 0.35rem; }
+.pip {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--border); transition: background 0.3s;
+}
+.pip.used { background: var(--orange); }
+
+/* ── INSTALL BANNER ── */
+.install-banner {
+  display: none;
+  background: var(--orange-dim); border: 1px solid var(--orange);
+  border-radius: 12px; padding: 1rem 1.1rem;
+  align-items: center; gap: 0.9rem;
+}
+.install-banner.show { display: flex; }
+.inst-icon { font-size: 1.7rem; flex-shrink: 0; }
+.inst-body { flex: 1; }
+.inst-body strong { font-size: 0.8rem; display: block; margin-bottom: 0.15rem; }
+.inst-body span { font-size: 0.7rem; color: var(--muted); }
+.inst-btn {
+  background: var(--orange); color: #1C0F0A;
+  border: none; border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem; font-weight: 700;
+  cursor: pointer; flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── HISTORY ── */
+.hist-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  min-height: 280px; gap: 1rem;
+  color: var(--muted); text-align: center;
+}
+.hist-empty .big { font-size: 3rem; opacity: 0.25; }
+.hist-empty p { font-size: 0.8rem; line-height: 1.65; max-width: 230px; font-weight: 300; }
+
+.hist-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1rem 1.1rem;
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 0.7rem;
+}
+.hist-emoji { font-size: 1.9rem; flex-shrink: 0; }
+.hist-body { flex: 1; }
+.hist-loc { font-size: 0.85rem; font-weight: 600; }
+.hist-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; color: var(--muted); margin-top: 0.2rem;
+}
+.hist-cal {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 700; color: var(--orange);
+}
+
+/* ── SETTINGS ── */
+.set-section { margin-bottom: 1.2rem; }
+.set-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 0.55rem; padding: 0 0.2rem;
+}
+.set-card {
+  background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+}
+.set-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.9rem 1.1rem; border-bottom: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+.set-row:last-child { border-bottom: none; }
+.set-r {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem; color: var(--muted);
+}
+.set-action { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--orange); cursor: pointer; }
+.set-row.danger .set-action { color: var(--red); }
+
+/* ── PAYWALL ── */
+.paywall {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(28,15,10,0.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+.paywall.open { display: flex; }
+
+.pw-sheet {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px 22px 0 0;
+  padding: 1.5rem 1.5rem calc(1.6rem + var(--safe-bottom));
+  width: 100%; max-width: 480px;
+  animation: sheetUp 0.38s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes sheetUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.pw-handle {
+  width: 40px; height: 4px;
+  background: var(--border); border-radius: 2px;
+  margin: 0 auto 1.6rem;
+}
+
+.pw-icon { text-align: center; font-size: 3rem; margin-bottom: 0.9rem; }
+
+.pw-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem; font-weight: 700; font-style: italic;
+  text-align: center; line-height: 1.15; margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+.pw-title span { color: var(--orange); }
+
+.pw-sub {
+  text-align: center; font-size: 0.8rem; color: var(--muted);
+  line-height: 1.65; margin-bottom: 1.6rem; font-weight: 300;
+}
+
+.pw-perks { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 1.6rem; }
+.pw-perk { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.8rem; line-height: 1.55; }
+.pw-perk-icon { font-size: 1.05rem; flex-shrink: 0; margin-top: 0.05rem; }
+.pw-perk-txt { color: var(--text); font-weight: 300; }
+.pw-perk-txt strong { color: var(--cream); font-weight: 600; }
+
+.pw-price {
+  display: flex; align-items: baseline; justify-content: center;
+  gap: 0.35rem; margin-bottom: 1.3rem;
+}
+.pw-price-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.2rem; font-weight: 700; line-height: 1; color: var(--text);
+}
+.pw-price-per { font-size: 0.82rem; color: var(--muted); }
+
+/* Payment buttons */
+.pw-pay-opts { display: flex; flex-direction: column; gap: 0.7rem; margin-bottom: 0.8rem; }
+
+.btn-stripe {
+  width: 100%; padding: 0.95rem;
+  background: var(--orange); color: #1C0F0A;
+  border: none; border-radius: 12px;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.btn-stripe:hover { background: #F06030; box-shadow: 0 5px 22px rgba(232,84,26,0.45); }
+
+.btn-dismiss {
+  width: 100%; padding: 0.75rem;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 12px;
+  font-family: 'Outfit', sans-serif; font-size: 0.78rem;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-dismiss:hover { border-color: var(--text); color: var(--text); }
+
+.pw-trust {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.8rem; margin-top: 0.9rem; flex-wrap: wrap;
+}
+.pw-trust-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.56rem; color: var(--muted);
+  letter-spacing: 0.08em;
+  display: flex; align-items: center; gap: 0.3rem;
+}
+
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP NAV -->
+  <nav class="topnav">
+    <div class="logo">
+      <span class="logo-feast">Feast</span>
+      <span class="logo-smart">Smart</span>
+    </div>
+    <div class="pro-badge" id="proBadge" onclick="openPaywall()">✦ Go Pro · $5/mo</div>
+  </nav>
+
+  <!-- ══════════ HOME PAGE ══════════ -->
+  <div class="page active" id="page-home">
+
+    <div class="hero">
+      <div class="hero-tag">Calorie Deficit Planner</div>
+      <h1 class="hero-title">Feast on<br>your culture.<br><em>Lose weight.</em></h1>
+      <p class="hero-sub">Real meal plans using food you actually grew up eating — not a Western diet template.</p>
+    </div>
+
+    <!-- Install prompt -->
+    <div class="install-banner" id="installBanner">
+      <div class="inst-icon">📲</div>
+      <div class="inst-body">
+        <strong>Add to Home Screen</strong>
+        <span>Install FeastSmart for the full app experience</span>
+      </div>
+      <button class="inst-btn" onclick="triggerInstall()">Install</button>
+    </div>
+
+    <!-- Profile card -->
+    <div class="card">
+      <div class="card-head">Your Profile</div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Age</label>
+          <input type="number" id="age" value="28" min="16" max="80" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Weight <span class="sub">kg</span></label>
+          <input type="number" id="weight" value="75" min="30" max="250" inputmode="decimal">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Height <span class="sub">cm</span></label>
+          <input type="number" id="height" value="170" min="120" max="230" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label>Sex</label>
+          <select id="sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Activity level</label>
+        <div class="seg-group" id="actSeg">
+          <div class="seg on" data-val="1.2">Sedentary</div>
+          <div class="seg" data-val="1.375">Light</div>
+          <div class="seg" data-val="1.55">Moderate</div>
+          <div class="seg" data-val="1.725">Active</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Weekly loss goal</label>
+        <div class="seg-group" id="goalSeg">
+          <div class="seg" data-val="250">−0.25 kg/wk<br><span style="font-size:0.58rem;font-weight:300">Gentle</span></div>
+          <div class="seg on" data-val="500">−0.5 kg/wk<br><span style="font-size:0.58rem;font-weight:300">Steady</span></div>
+          <div class="seg" data-val="750">−0.75 kg/wk<br><span style="font-size:0.58rem;font-weight:300">Faster</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Target weight <span class="sub">kg</span></label>
+        <div class="slider-row">
+          <input type="range" id="targetW" min="40" max="200" value="68" step="0.5"
+            oninput="document.getElementById('twLbl').textContent=this.value+'kg';calcStats()">
+          <span class="sl-val" id="twLbl">68 kg</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat hero-stat">
+        <div class="stat-lbl">Daily Target</div>
+        <div class="stat-num" id="statTarget">—</div>
+        <div class="stat-hint">kcal / day</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Maintenance</div>
+        <div class="stat-num" id="statTdee">—</div>
+        <div class="stat-hint">kcal TDEE</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Timeline</div>
+        <div class="stat-num" id="statTime" style="font-size:1.5rem">—</div>
+        <div class="stat-hint" id="statTimeHint">to goal</div>
+      </div>
+      <div class="stat">
+        <div class="stat-lbl">Deficit</div>
+        <div class="stat-num" id="statDeficit">—</div>
+        <div class="stat-hint">kcal below TDEE</div>
+      </div>
+    </div>
+
+    <!-- Macros -->
+    <div class="card">
+      <div class="card-head">Daily Macro Targets</div>
+      <div class="macro-stack">
+        <div>
+          <div class="mac-lbl-row">
+            <span class="mac-name">🥩 Protein</span>
+            <span class="mac-grams" id="macProtein">—</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="bProtein" style="background:#E8541A"></div></div>
+        </div>
+        <div>
+          <div class="mac-lbl-row">
+            <span class="mac-name">🌾 Carbohydrates</span>
+            <span class="mac-grams" id="macCarb">—</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="bCarb" style="background:#F0A500"></div></div>
+        </div>
+        <div>
+          <div class="mac-lbl-row">
+            <span class="mac-name">🫒 Fats</span>
+            <span class="mac-grams" id="macFat">—</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" id="bFat" style="background:#5A9E6F"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ MEAL PLAN PAGE ══════════ -->
+  <div class="page" id="page-plan">
+
+    <div class="hero">
+      <div class="hero-tag">AI-Powered</div>
+      <h1 class="hero-title" style="font-size:2.2rem">Your <em>local</em><br>meal plan</h1>
+    </div>
+
+    <!-- Free uses indicator -->
+    <div class="uses-row" id="usesRow">
+      <span class="uses-txt" id="usesTxt">2 free plans remaining</span>
+      <div class="uses-pips">
+        <div class="pip on" id="pip1"></div>
+        <div class="pip on" id="pip2"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Location & Preferences</div>
+      <div class="field">
+        <label>Your city or country</label>
+        <input type="text" id="location" placeholder="Lagos · Mumbai · São Paulo · Jakarta…">
+      </div>
+      <div class="field">
+        <label>Dietary needs <span class="sub">optional</span></label>
+        <input type="text" id="dietPref" placeholder="halal · vegetarian · no dairy · gluten-free…">
+      </div>
+    </div>
+
+    <button class="btn-gen" id="genBtn" onclick="handleGenerate()">
+      <span>🌍</span> Generate My Local Meal Plan
+    </button>
+
+    <!-- Plan output -->
+    <div class="plan-card">
+      <div class="plan-toprow">
+        <div class="card-head" style="margin:0">Today's Meals</div>
+        <div class="ai-status">
+          <div class="ai-dot" id="aiDot"></div>
+          <span id="aiTxt">Ready</span>
+        </div>
+      </div>
+
+      <div class="plan-empty" id="planEmpty">
+        <div class="big">🍽️</div>
+        <p>Enter your location and tap Generate — we'll build a meal plan from foods you actually know and love.</p>
+      </div>
+
+      <div class="shimmer" id="shimmer">
+        <div class="sl"></div><div class="sl"></div>
+        <div class="sl"></div><div class="sl"></div><div class="sl"></div>
+      </div>
+
+      <div class="plan-out" id="planOut"></div>
+    </div>
+
+  </div>
+
+  <!-- ══════════ HISTORY PAGE ══════════ -->
+  <div class="page" id="page-history">
+    <div class="hero">
+      <div class="hero-tag">Your Journey</div>
+      <h1 class="hero-title" style="font-size:2.2rem">Plan<br><em>history</em></h1>
+    </div>
+    <div id="histList">
+      <div class="hist-empty">
+        <div class="big">📖</div>
+        <p>Your generated meal plans will appear here. Start by creating your first plan.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ SETTINGS PAGE ══════════ -->
+  <div class="page" id="page-settings">
+    <div class="hero">
+      <div class="hero-tag">Preferences</div>
+      <h1 class="hero-title" style="font-size:2.2rem">Settings</h1>
+    </div>
+
+    <div class="set-section">
+      <div class="set-label">Subscription</div>
+      <div class="set-card">
+        <div class="set-row">
+          <span>Current plan</span>
+          <span class="set-r" id="setPlan">Free</span>
+        </div>
+        <div class="set-row">
+          <span>Plans generated</span>
+          <span class="set-r" id="setUsed">0 of 2 free</span>
+        </div>
+        <div class="set-row">
+          <span>Upgrade to Pro</span>
+          <span class="set-action" onclick="openPaywall()">$5/month →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-label">Payments accepted</div>
+      <div class="set-card">
+        <div class="set-row">
+          <span>💳 Credit &amp; Debit Cards</span>
+          <span class="set-r">Visa, Mastercard, Amex</span>
+        </div>
+        <div class="set-row">
+          <span> Apple Pay</span>
+          <span class="set-r">iPhone &amp; Mac</span>
+        </div>
+        <div class="set-row" style="border:none">
+          <span>G Google Pay</span>
+          <span class="set-r">Android &amp; Chrome</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-label">App</div>
+      <div class="set-card">
+        <div class="set-row">
+          <span>Version</span>
+          <span class="set-r">1.0.0</span>
+        </div>
+        <div class="set-row">
+          <span>AI engine</span>
+          <span class="set-r">Claude Sonnet</span>
+        </div>
+        <div class="set-row danger">
+          <span>Clear all data</span>
+          <span class="set-action" onclick="clearData()">Delete →</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-section">
+      <div class="set-label">Legal</div>
+      <div class="set-card">
+        <div class="set-row" style="border:none">
+          <span style="font-size:0.75rem;color:var(--muted);font-weight:300">FeastSmart provides general nutrition guidance only. Always consult a qualified nutritionist or doctor for medical advice.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottomnav">
+    <div class="nav-item active" onclick="goPage('home',this)">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-item" onclick="goPage('plan',this)">
+      <div class="nav-icon">🍽️</div>
+      <div class="nav-label">Plan</div>
+    </div>
+    <div class="nav-item" onclick="goPage('history',this)">
+      <div class="nav-icon">📖</div>
+      <div class="nav-label">History</div>
+    </div>
+    <div class="nav-item" onclick="goPage('settings',this)">
+      <div class="nav-icon">⚙️</div>
+      <div class="nav-label">Settings</div>
+    </div>
+  </nav>
+
+</div>
+
+<!-- ══════════ PAYWALL SHEET ══════════ -->
+<div class="paywall" id="paywall" onclick="closeIfBg(event)">
+  <div class="pw-sheet">
+    <div class="pw-handle"></div>
+    <div class="pw-icon">🔥</div>
+    <h2 class="pw-title">Unlock <span>FeastSmart</span> Pro</h2>
+    <p class="pw-sub">Unlimited AI meal plans built around your food culture — every day, for every city on earth.</p>
+
+    <div class="pw-perks">
+      <div class="pw-perk">
+        <div class="pw-perk-icon">♾️</div>
+        <div class="pw-perk-txt"><strong>Unlimited meal plans</strong> — generate fresh plans every day, any location</div>
+      </div>
+      <div class="pw-perk">
+        <div class="pw-perk-icon">📅</div>
+        <div class="pw-perk-txt"><strong>Full 7-day weekly plans</strong> — not just one day at a time</div>
+      </div>
+      <div class="pw-perk">
+        <div class="pw-perk-icon">🛒</div>
+        <div class="pw-perk-txt"><strong>Local shopping lists</strong> — ingredients you can actually find near you</div>
+      </div>
+      <div class="pw-perk">
+        <div class="pw-perk-icon">📊</div>
+        <div class="pw-perk-txt"><strong>Progress tracking</strong> — log meals and see your deficit over time</div>
+      </div>
+      <div class="pw-perk">
+        <div class="pw-perk-icon">🌐</div>
+        <div class="pw-perk-txt"><strong>Works for any country</strong> — 150+ local food cultures supported</div>
+      </div>
+    </div>
+
+    <div class="pw-price">
+      <div class="pw-price-num">$5</div>
+      <div class="pw-price-per">/ month · 7-day free trial</div>
+    </div>
+
+    <div class="pw-pay-opts">
+      <button class="btn-stripe" onclick="subscribe('stripe')">
+        💳 Start Free Trial — Card, Apple Pay or Google Pay
+      </button>
+    </div>
+
+    <button class="btn-dismiss" onclick="closePaywall()">Maybe later</button>
+
+    <div class="pw-trust">
+      <div class="pw-trust-item">🔒 SSL Encrypted</div>
+      <div class="pw-trust-item">✓ Cancel anytime</div>
+      <div class="pw-trust-item"> Apple Pay &amp; G Pay supported</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+const S = { isPro: false, used: 0, freeLimit: 2, history: [] };
+
+// ── Nav ──
+function goPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── Segs ──
+document.querySelectorAll('.seg').forEach(s => {
+  s.addEventListener('click', () => {
+    s.closest('.seg-group').querySelectorAll('.seg').forEach(x => x.classList.remove('on'));
+    s.classList.add('on');
+    calcStats();
+  });
+});
+
+function getSeg(id) {
+  const el = document.querySelector(`#${id} .seg.on`);
+  return el ? parseFloat(el.dataset.val) : null;
+}
+
+// ── BMR / TDEE ──
+function bmr(w, h, a, sex) {
+  return sex === 'male' ? 10*w + 6.25*h - 5*a + 5 : 10*w + 6.25*h - 5*a - 161;
+}
+
+let animFrame;
+function animNum(el, to, dur=550) {
+  const from = parseFloat((el.textContent||'0').replace(/[^0-9.]/g,'')) || 0;
+  const t0 = performance.now();
+  cancelAnimationFrame(animFrame);
+  function step(now) {
+    const t = Math.min((now-t0)/dur, 1);
+    const e = 1 - Math.pow(1-t, 3);
+    el.textContent = Math.round(from + (to-from)*e).toLocaleString();
+    if (t < 1) animFrame = requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function calcStats() {
+  const w   = parseFloat(document.getElementById('weight').value) || 75;
+  const h   = parseFloat(document.getElementById('height').value) || 170;
+  const a   = parseFloat(document.getElementById('age').value) || 28;
+  const sex = document.getElementById('sex').value;
+  const act = getSeg('actSeg') || 1.2;
+  const def = getSeg('goalSeg') || 500;
+  const tw  = parseFloat(document.getElementById('targetW').value) || 68;
+
+  const tdee   = Math.round(bmr(w,h,a,sex) * act);
+  const target = Math.round(tdee - def);
+  const kgLoss = Math.max(0, w - tw);
+  const weeks  = kgLoss > 0 ? Math.ceil((kgLoss * 7700) / (def * 7)) : 0;
+
+  animNum(document.getElementById('statTdee'), tdee);
+  animNum(document.getElementById('statTarget'), target);
+  animNum(document.getElementById('statDeficit'), def);
+
+  if (weeks > 0) {
+    const mo = (weeks / 4.33).toFixed(1);
+    document.getElementById('statTime').textContent = mo < 1 ? weeks + 'w' : mo + 'mo';
+    document.getElementById('statTimeHint').textContent = `to lose ${kgLoss.toFixed(1)} kg`;
+  } else {
+    document.getElementById('statTime').textContent = '✓';
+    document.getElementById('statTimeHint').textContent = 'At goal weight';
+  }
+
+  const protein = Math.round((target * 0.30) / 4);
+  const carbs   = Math.round((target * 0.45) / 4);
+  const fats    = Math.round((target * 0.25) / 9);
+
+  document.getElementById('macProtein').textContent = protein + 'g · 30%';
+  document.getElementById('macCarb').textContent    = carbs   + 'g · 45%';
+  document.getElementById('macFat').textContent     = fats    + 'g · 25%';
+
+  setTimeout(() => {
+    document.getElementById('bProtein').style.width = '30%';
+    document.getElementById('bCarb').style.width    = '45%';
+    document.getElementById('bFat').style.width     = '25%';
+  }, 100);
+
+  return { tdee, target, def, protein, carbs, fats };
+}
+
+['weight','height','age','sex'].forEach(id => {
+  document.getElementById(id).addEventListener('input', calcStats);
+  document.getElementById(id).addEventListener('change', calcStats);
+});
+
+calcStats();
+
+// ── Update free uses UI ──
+function updateUsesUI() {
+  const rem = Math.max(0, S.freeLimit - S.used);
+  if (S.isPro) {
+    document.getElementById('usesTxt').textContent = '✦ Pro — unlimited plans';
+    document.getElementById('pip1').classList.add('on');
+    document.getElementById('pip2').classList.add('on');
+    document.getElementById('usesRow').style.background = 'var(--orange-dim)';
+    document.getElementById('usesRow').style.borderColor = 'var(--orange)';
+  } else {
+    document.getElementById('usesTxt').textContent = rem + ' free plan' + (rem !== 1 ? 's' : '') + ' remaining';
+    document.getElementById('pip1').classList.toggle('on', S.used < 1);
+    document.getElementById('pip2').classList.toggle('on', S.used < 2);
+  }
+  document.getElementById('setUsed').textContent = S.isPro ? '∞ unlimited' : `${S.used} of ${S.freeLimit} free`;
+}
+
+// ── Generate ──
+async function handleGenerate() {
+  const loc = document.getElementById('location').value.trim();
+  if (!loc) {
+    const el = document.getElementById('location');
+    el.style.borderColor = 'var(--red)';
+    el.focus(); el.placeholder = 'Please enter your location ↑';
+    setTimeout(() => { el.style.borderColor = ''; el.placeholder = 'Lagos · Mumbai · São Paulo · Jakarta…'; }, 2500);
+    return;
+  }
+
+  if (!S.isPro && S.used >= S.freeLimit) { openPaywall(); return; }
+
+  const nums    = calcStats();
+  const dietPref = document.getElementById('dietPref').value.trim();
+
+  // UI loading
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true; btn.innerHTML = '<span>⏳</span> Generating your plan…';
+  document.getElementById('planEmpty').style.display = 'none';
+  document.getElementById('planOut').classList.remove('on');
+  document.getElementById('planOut').innerHTML = '';
+  document.getElementById('shimmer').classList.add('on');
+  document.getElementById('aiDot').classList.add('live');
+  document.getElementById('aiTxt').textContent = 'AI cooking…';
+
+  const prompt = `You are a culturally-aware nutrition expert creating a practical daily meal plan.
+
+User details:
+- Location: ${loc}
+- Daily calorie target: ${nums.target} kcal (deficit of ${nums.def} kcal from TDEE of ${nums.tdee})
+- Protein: ${nums.protein}g | Carbs: ${nums.carbs}g | Fats: ${nums.fats}g
+- Dietary restrictions: ${dietPref || 'None'}
+
+Rules:
+1. Use ONLY foods genuinely common and affordable in ${loc} — street food, home-cooked staples, local markets
+2. Respect local meal timing and cultural customs (e.g. heavy breakfast in some cultures, light in others)
+3. Use local food names first, with English in brackets if needed
+4. Be realistic about portions — local portion norms, not Western clinical amounts
+
+Output ONLY valid HTML using exactly these tags (no markdown, no backticks, no extra text):
+
+<h3>[meal name with emoji]</h3>
+<div class="meal-item">
+  <span class="meal-name">[food name]</span>
+  <span class="meal-detail">[portion + brief prep]</span>
+  <span class="meal-cal">~[X] kcal</span>
+</div>
+<div class="tip-box"><strong>💡 Local tip:</strong> [one specific, culturally-grounded weight loss tip for ${loc}]</div>
+
+Include 4 meals (Breakfast, Lunch, Dinner, Snack). Total ~${nums.target} kcal. Output HTML only — nothing else.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        stream: true,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    document.getElementById('shimmer').classList.remove('on');
+    document.getElementById('planOut').classList.add('on');
+
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n'); buf = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') continue;
+        try {
+          const j = JSON.parse(data);
+          if (j.type === 'content_block_delta' && j.delta?.text) {
+            document.getElementById('planOut').innerHTML += j.delta.text;
+          }
+        } catch {}
+      }
+    }
+
+    // Track usage
+    if (!S.isPro) S.used++;
+    S.history.unshift({ loc, date: new Date().toLocaleDateString('en-GB'), cal: nums.target, emoji: flagEmoji(loc) });
+    updateUsesUI();
+    renderHistory();
+    document.getElementById('setUsed').textContent = S.isPro ? '∞ unlimited' : `${S.used} of ${S.freeLimit} free`;
+
+  } catch (err) {
+    document.getElementById('shimmer').classList.remove('on');
+    document.getElementById('planOut').classList.add('on');
+    document.getElementById('planOut').innerHTML =
+      '<div class="tip-box"><strong>Connection issue:</strong> Could not reach the AI. Please check your internet connection and try again.</div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>🔄</span> Regenerate Plan';
+  document.getElementById('aiDot').classList.remove('live');
+  document.getElementById('aiTxt').textContent = 'Plan ready ✓';
+}
+
+// ── History ──
+function flagEmoji(loc) {
+  const l = loc.toLowerCase();
+  if (/japan|tokyo|osaka/.test(l)) return '🇯🇵';
+  if (/nigeria|lagos|abuja/.test(l)) return '🇳🇬';
+  if (/india|mumbai|delhi|bangalore|chennai/.test(l)) return '🇮🇳';
+  if (/brazil|brasil|são paulo|rio/.test(l)) return '🇧🇷';
+  if (/mexico|méxico/.test(l)) return '🇲🇽';
+  if (/ghana|accra/.test(l)) return '🇬🇭';
+  if (/indonesia|jakarta|bali/.test(l)) return '🇮🇩';
+  if (/malaysia|kuala lumpur|kl/.test(l)) return '🇲🇾';
+  if (/pakistan|karachi|lahore/.test(l)) return '🇵🇰';
+  if (/bangladesh|dhaka/.test(l)) return '🇧🇩';
+  if (/philippines|manila/.test(l)) return '🇵🇭';
+  if (/egypt|cairo/.test(l)) return '🇪🇬';
+  if (/turkey|istanbul/.test(l)) return '🇹🇷';
+  if (/kenya|nairobi/.test(l)) return '🇰🇪';
+  if (/ethiopia|addis/.test(l)) return '🇪🇹';
+  if (/colombia|bogotá/.test(l)) return '🇨🇴';
+  return '🌍';
+}
+
+function renderHistory() {
+  const el = document.getElementById('histList');
+  if (!S.history.length) return;
+  el.innerHTML = S.history.map(h => `
+    <div class="hist-card">
+      <div class="hist-emoji">${h.emoji}</div>
+      <div class="hist-body">
+        <div class="hist-loc">${h.loc}</div>
+        <div class="hist-meta">${h.date} · target ${h.cal} kcal/day</div>
+      </div>
+      <div class="hist-cal">${h.cal}</div>
+    </div>`).join('');
+}
+
+// ── Paywall ──
+function openPaywall() { document.getElementById('paywall').classList.add('open'); }
+function closePaywall() { document.getElementById('paywall').classList.remove('open'); }
+function closeIfBg(e) { if (e.target === document.getElementById('paywall')) closePaywall(); }
+
+function subscribe() {
+  // 🔌 INTEGRATION: Replace with your Stripe Payment Link
+  // window.location.href = 'https://buy.stripe.com/YOUR_LINK';
+  // Stripe automatically shows Apple Pay / Google Pay based on device
+
+  // Demo simulation:
+  S.isPro = true;
+  document.getElementById('proBadge').textContent = '✦ Pro';
+  document.getElementById('proBadge').classList.add('active');
+  document.getElementById('setPlan').textContent = 'Pro ✓';
+  updateUsesUI();
+  closePaywall();
+  alert('🎉 Welcome to FeastSmart Pro!\n\n(Stripe checkout would open here in production — includes Apple Pay & Google Pay automatically)');
+}
+
+function clearData() {
+  if (confirm('Clear all FeastSmart data?')) {
+    S.used = 0; S.history = []; S.isPro = false;
+    updateUsesUI(); renderHistory();
+    document.getElementById('setPlan').textContent = 'Free';
+    document.getElementById('proBadge').textContent = '✦ Go Pro · $5/mo';
+    document.getElementById('proBadge').classList.remove('active');
+  }
+}
+
+// ── PWA Install ──
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('installBanner').classList.add('show');
+});
+function triggerInstall() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    document.getElementById('installBanner').classList.remove('show');
+    deferredPrompt = null;
+  });
+}
+
+// ── Service Worker ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// Init
+updateUsesUI();
+</script>
+</body>
+</html>

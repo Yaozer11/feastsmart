@@ -1,0 +1,16 @@
+{
+  "name": "FeastSmart",
+  "short_name": "FeastSmart",
+  "description": "Feast on your local food. Lose weight smartly.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#1C0F0A",
+  "theme_color": "#E8541A",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["health", "fitness", "food", "lifestyle"],
+  "lang": "en"
+}
